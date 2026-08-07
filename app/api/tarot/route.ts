@@ -8,6 +8,7 @@ const TOPIC_LABELS: Record<string, string> = {
   luck:   '오늘의 총운',
 };
 
+const MODELS = ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'];
 const MAX_RETRIES = 2;
 const TIMEOUT_MS = 25_000;
 
@@ -41,31 +42,39 @@ async function callGemini(
 ): Promise<string> {
   let lastErr: unknown;
 
-  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
-    console.log(`[/api/tarot] attempt ${attempt}/${MAX_RETRIES + 1}`);
-    try {
-      const response = await withTimeout(
-        ai.models.generateContent({
-          model: 'gemini-flash-latest',
-          contents: prompt,
-          config: {
-            systemInstruction:
-              '당신은 신비롭고 다정한 AI 타로마스터입니다. 사용자가 고른 주제와 선택한 타로 카드 3장의 명칭을 바탕으로 각 카드의 의미와 종합적인 해석, 그리고 따뜻한 조언을 감성적인 한국어로 작성해 주세요.',
-            responseMimeType: 'application/json',
-            maxOutputTokens: 800,
-          },
-        }),
-        TIMEOUT_MS,
-      );
-      console.log(`[/api/tarot] attempt ${attempt} succeeded`);
-      return response.text ?? '';
-    } catch (err) {
-      lastErr = err;
-      logError(`attempt ${attempt} failed`, err);
-      if (attempt <= MAX_RETRIES) {
-        const delay = attempt * 1500;
-        console.log(`[/api/tarot] retrying in ${delay}ms…`);
-        await new Promise(r => setTimeout(r, delay));
+  for (const model of MODELS) {
+    for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
+      console.log(`[/api/tarot] model=${model} attempt ${attempt}/${MAX_RETRIES + 1}`);
+      try {
+        const response = await withTimeout(
+          ai.models.generateContent({
+            model,
+            contents: prompt,
+            config: {
+              systemInstruction:
+                '당신은 신비롭고 다정한 AI 타로마스터입니다. 사용자가 고른 주제와 선택한 타로 카드 3장의 명칭을 바탕으로 각 카드의 의미와 종합적인 해석, 그리고 따뜻한 조언을 감성적인 한국어로 작성해 주세요.',
+              responseMimeType: 'application/json',
+              maxOutputTokens: 800,
+            },
+          }),
+          TIMEOUT_MS,
+        );
+        console.log(`[/api/tarot] model=${model} attempt ${attempt} succeeded`);
+        return response.text ?? '';
+      } catch (err) {
+        lastErr = err;
+        const status = (err as Record<string, unknown>)['status'];
+        logError(`model=${model} attempt ${attempt} failed`, err);
+        // 429 quota exhausted — skip remaining retries and try next model
+        if (status === 429) {
+          console.log(`[/api/tarot] quota exceeded for ${model}, trying next model…`);
+          break;
+        }
+        if (attempt <= MAX_RETRIES) {
+          const delay = attempt * 1500;
+          console.log(`[/api/tarot] retrying in ${delay}ms…`);
+          await new Promise(r => setTimeout(r, delay));
+        }
       }
     }
   }
