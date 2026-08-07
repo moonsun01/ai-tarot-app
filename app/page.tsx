@@ -544,7 +544,7 @@ function ResultModal({ topicId, cardIndices, onClose }: ModalProps) {
                   WebkitTextFillColor: 'transparent',
                 }}
               >
-                🔮 타로마스터의 신탁
+                🔮 타로마스터의 메시지
               </h2>
 
               {/* Selected card thumbnails */}
