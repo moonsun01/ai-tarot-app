@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 /* ─────────────────────────────────────────────
    Data
@@ -71,8 +71,12 @@ const ARCANA = [
    StarField
 ───────────────────────────────────────────── */
 function StarField() {
-  const stars = useMemo(
-    () =>
+  const [stars, setStars] = useState<
+    { id: number; top: string; left: string; size: number; opacity: number; animDelay: string; animDuration: string }[]
+  >([]);
+
+  useEffect(() => {
+    setStars(
       Array.from({ length: 90 }, (_, i) => ({
         id: i,
         top: `${Math.random() * 100}%`,
@@ -82,8 +86,8 @@ function StarField() {
         animDelay: `${Math.random() * 5}s`,
         animDuration: `${2 + Math.random() * 3}s`,
       })),
-    [],
-  );
+    );
+  }, []);
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -503,7 +507,7 @@ function ResultModal({ topicId, cardIndices, onClose }: ModalProps) {
                 >
                   {LOADING_MESSAGES[msgIdx]}
                 </p>
-                <p className="text-purple-400/50 text-xs">Gemini AI가 신탁을 준비하고 있습니다</p>
+                <p className="text-purple-400/50 text-xs">Gemini AI가 타로 해석을 준비하고 있습니다</p>
               </div>
 
               <div className="flex gap-1.5">
