@@ -8,6 +8,71 @@ const TOPIC_LABELS: Record<string, string> = {
   luck:   '오늘의 총운',
 };
 
+const MAX_RETRIES = 2;
+const TIMEOUT_MS = 25_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Request timed out after ${ms}ms`)), ms),
+    ),
+  ]);
+}
+
+function logError(label: string, err: unknown) {
+  const e = err as Record<string, unknown>;
+  console.error(`\n[/api/tarot] ══ ${label} ══`);
+  console.error('  type    :', err?.constructor?.name ?? typeof err);
+  console.error('  status  :', e['status'] ?? e['statusCode'] ?? 'N/A');
+  console.error('  code    :', e['code'] ?? 'N/A');
+  console.error('  message :', e['message'] ?? String(err));
+  if (e['errorDetails']) console.error('  details :', JSON.stringify(e['errorDetails']));
+  if (e['stack']) {
+    console.error('  stack   :');
+    String(e['stack']).split('\n').slice(0, 6).forEach(l => console.error('   ', l));
+  }
+  console.error('');
+}
+
+async function callGemini(
+  ai: GoogleGenAI,
+  prompt: string,
+): Promise<string> {
+  let lastErr: unknown;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
+    console.log(`[/api/tarot] attempt ${attempt}/${MAX_RETRIES + 1}`);
+    try {
+      const response = await withTimeout(
+        ai.models.generateContent({
+          model: 'gemini-flash-latest',
+          contents: prompt,
+          config: {
+            systemInstruction:
+              '당신은 신비롭고 다정한 AI 타로마스터입니다. 사용자가 고른 주제와 선택한 타로 카드 3장의 명칭을 바탕으로 각 카드의 의미와 종합적인 해석, 그리고 따뜻한 조언을 감성적인 한국어로 작성해 주세요.',
+            responseMimeType: 'application/json',
+            maxOutputTokens: 800,
+          },
+        }),
+        TIMEOUT_MS,
+      );
+      console.log(`[/api/tarot] attempt ${attempt} succeeded`);
+      return response.text ?? '';
+    } catch (err) {
+      lastErr = err;
+      logError(`attempt ${attempt} failed`, err);
+      if (attempt <= MAX_RETRIES) {
+        const delay = attempt * 1500;
+        console.log(`[/api/tarot] retrying in ${delay}ms…`);
+        await new Promise(r => setTimeout(r, delay));
+      }
+    }
+  }
+
+  throw lastErr;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { topic, cards } = (await req.json()) as {
@@ -25,46 +90,32 @@ export async function POST(req: NextRequest) {
 
 ${cardList}
 
-각 카드가 이 주제에서 전하는 메시지, 세 카드를 아우르는 종합 해석, 그리고 따뜻한 마무리 조언을 작성해 주세요.
 아래 JSON 형식으로만 응답하세요 (코드블록 없이):
 {
   "cards": [
-    { "name": "카드 한국어 이름", "reading": "이 카드가 주제와 관련해 전하는 신비롭고 감성적인 메시지. 2~3문장." },
-    { "name": "카드 한국어 이름", "reading": "..." },
-    { "name": "카드 한국어 이름", "reading": "..." }
+    { "name": "카드 한국어 이름", "reading": "이 카드가 주제와 관련해 전하는 핵심 메시지. 1~2문장." },
+    { "name": "카드 한국어 이름", "reading": "1~2문장." },
+    { "name": "카드 한국어 이름", "reading": "1~2문장." }
   ],
-  "overall": "세 카드가 함께 전하는 이야기. 흐름이 이어지도록 3~4문장.",
-  "advice": "타로마스터로서 전하는 따뜻하고 희망적인 마무리. 2~3문장."
+  "overall": "세 카드가 함께 전하는 이야기. 2~3문장.",
+  "advice": "타로마스터의 따뜻한 마무리 조언. 1~2문장."
 }`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-flash-latest',
-      contents: prompt,
-      config: {
-        systemInstruction:
-          '당신은 신비롭고 다정한 AI 타로마스터입니다. 사용자가 고른 주제와 선택한 타로 카드 3장의 명칭을 바탕으로 각 카드의 의미와 종합적인 해석, 그리고 따뜻한 조언을 감성적인 한국어로 작성해 주세요.',
-        responseMimeType: 'application/json',
-      },
-    });
-
-    const raw = response.text ?? '';
+    const raw = await callGemini(ai, prompt);
     const json = raw.replace(/```(?:json)?\n?/g, '').trim();
 
     let parsed: unknown;
     try {
       parsed = JSON.parse(json);
     } catch (parseErr) {
-      console.error('[/api/tarot] JSON parse error:', parseErr);
-      console.error('[/api/tarot] Raw response:', raw.slice(0, 500));
+      logError('JSON parse error', parseErr);
+      console.error('[/api/tarot] raw response (first 500 chars):', raw.slice(0, 500));
       throw new Error('AI 응답을 파싱하는 데 실패했어요.');
     }
 
     return NextResponse.json(parsed);
   } catch (err: unknown) {
-    const e = err as { status?: number; message?: string; stack?: string };
-    console.error('[/api/tarot] status:', e.status ?? 'N/A');
-    console.error('[/api/tarot] message:', e.message ?? String(err));
-    console.error('[/api/tarot] stack:', e.stack?.split('\n').slice(0, 4).join('\n'));
+    logError('unhandled error', err);
     return NextResponse.json(
       { error: '타로마스터와 연결하는 데 문제가 생겼어요. 잠시 후 다시 시도해주세요.' },
       { status: 500 },
