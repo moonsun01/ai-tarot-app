@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DC&M AI 타로점
 
-## Getting Started
+**2026-2 동아리박람회 AI 타로 체험 웹서비스**
 
-First, run the development server:
+컴퓨터공학부 학술 정동아리 DC&M이 제작한 AI 타로 운세 서비스입니다.  
+Google Gemini AI가 Major Arcana 22장을 바탕으로 연애/학업/대인관계/총운을 해석해 드립니다.
+
+## 기술 스택
+
+- **Framework**: Next.js 16 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS 4
+- **AI**: Google Gemini API (`@google/genai`)
+- **PWA**: Web App Manifest
+
+## 로컬 실행 방법
+
+### 1. 패키지 설치
+
+```bash
+npm install
+```
+
+### 2. 환경 변수 설정
+
+프로젝트 루트에 `.env.local` 파일을 생성하고 Gemini API 키를 입력합니다.
+
+```bash
+cp .env.example .env.local
+```
+
+`.env.local`:
+
+```
+GEMINI_API_KEY=여기에_Gemini_API_키_입력
+```
+
+> API 키 발급: [Google AI Studio](https://aistudio.google.com/app/apikey)
+
+### 3. 개발 서버 실행
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+브라우저에서 [http://localhost:3000](http://localhost:3000) 접속
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 프로젝트 구조
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/
+  page.tsx              # 메인 페이지
+  layout.tsx            # 루트 레이아웃 (PWA 메타데이터)
+  globals.css           # 전역 스타일 및 커스텀 애니메이션
+  api/tarot/route.ts    # Gemini API 호출 엔드포인트
+components/
+  StarField.tsx         # 배경 별자리 애니메이션
+  GrimoireCard.tsx      # 그리모어 스타일 SVG 카드
+  TarotDeck.tsx         # 3D 카드 덱
+  ResultModal.tsx       # AI 해석 결과 모달
+data/
+  topics.ts             # 운세 주제 데이터
+  arcana.ts             # 22장 Major Arcana 데이터
+public/
+  manifest.json         # PWA 매니페스트
+```
