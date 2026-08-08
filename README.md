@@ -49,18 +49,18 @@ npm run dev
 
 ```
 app/
-  page.tsx              # 메인 페이지
-  layout.tsx            # 루트 레이아웃 (PWA 메타데이터)
-  globals.css           # 전역 스타일 및 커스텀 애니메이션
-  api/tarot/route.ts    # Gemini API 호출 엔드포인트
+  page.tsx                # 메인 화면
+  layout.tsx              # 공통 레이아웃 및 웹/앱 기본 설정
+  globals.css             # 전체 디자인 스타일 및 애니메이션
+  api/tarot/route.ts      # Gemini AI 타로 해석 서버 연동
 components/
-  StarField.tsx         # 배경 별자리 애니메이션
-  GrimoireCard.tsx      # 그리모어 스타일 SVG 카드
-  TarotDeck.tsx         # 3D 카드 덱
-  ResultModal.tsx       # AI 해석 결과 모달
+  StarField.tsx           # 배경 별자리 효과
+  GrimoireCard.tsx        # 타로 카드 디자인 (마법서 스타일)
+  TarotDeck.tsx           # 카드 덱 (펼쳐진 카드 선택 화면)
+  ResultModal.tsx         # AI 타로 결과 창
 data/
-  topics.ts             # 운세 주제 데이터
-  arcana.ts             # 22장 Major Arcana 데이터
+  topics.ts               # 운세 주제 목록 (연애, 학업 등)
+  arcana.ts               # 메이저 아르카나 22장 카드 정보
 public/
-  manifest.json         # PWA 매니페스트
+  manifest.json           # 모바일 앱 스타일(PWA) 설정
 ```
