@@ -5,17 +5,29 @@ import StarField from '@/components/StarField';
 import TarotDeck from '@/components/TarotDeck';
 import ResultModal from '@/components/ResultModal';
 import { TOPICS } from '@/data/topics';
-import { ARCANA, CARD_SYMBOLS } from '@/data/arcana';
+import { getSubTopicGroup, findSubTopic } from '@/data/subtopics';
+import { ARCANA } from '@/data/arcana';
+
+// 카드 선택 화면에서는 모든 카드 뒷면을 동일하게 표시해
+// 심볼로 특정 카드를 유추할 수 없도록 한다.
+const CARD_BACK_SYMBOL = '✦';
 
 export default function Home() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
+  // 세부 선택이 필요한 주제(연애/학업·진로/대인관계)에서 사용자가 고른 세부 항목 id
+  const [subChoice, setSubChoice] = useState<string | null>(null);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [showModal, setShowModal] = useState(false);
 
   const handleTopicClick = (topicId: string) => {
     setSelectedTopic(topicId);
+    setSubChoice(null);
     setSelectedCards([]);
     setShowModal(false);
+  };
+
+  const handleSubChoiceClick = (subId: string) => {
+    setSubChoice(subId);
   };
 
   const handleCardClick = (index: number) => {
@@ -30,9 +42,14 @@ export default function Home() {
     setShowModal(false);
     setSelectedCards([]);
     setSelectedTopic(null);
+    setSubChoice(null);
   };
 
   const activeTopic = TOPICS.find((t) => t.id === selectedTopic);
+  const subGroup = getSubTopicGroup(selectedTopic);
+  const activeSubTopic = findSubTopic(selectedTopic, subChoice);
+  // 세부 선택 그룹이 있는 주제는 카드를 뽑기 전에 세부 항목을 먼저 고르도록 한다.
+  const needsSubChoice = !!subGroup && !subChoice;
   const allSelected = selectedCards.length === 3;
 
   return (
@@ -97,6 +114,50 @@ export default function Home() {
             </div>
           </div>
 
+        ) : needsSubChoice && subGroup ? (
+          /* 세부 주제 선택 (연애 상황 / 학업·진로 고민 / 관계 종류 등 중간 단계) */
+          <div className="flex flex-col items-center gap-6 w-full max-w-2xl fade-up">
+
+            <div className="flex items-center gap-3">
+              <span
+                className="px-5 py-2 rounded-full text-lg font-bold text-purple-100 glass-card"
+                style={{ animationDuration: '2s' }}
+              >
+                {activeTopic?.emoji} {activeTopic?.label}
+              </span>
+              <button
+                onClick={() => setSelectedTopic(null)}
+                className="text-xs text-purple-500 hover:text-purple-300 border border-purple-800/60 hover:border-purple-600/60 px-3 py-1.5 rounded-full transition-colors"
+              >
+                다시 선택
+              </button>
+            </div>
+
+            <p className="text-center text-purple-300/45 text-xs tracking-[0.25em] uppercase">
+              {subGroup.title}
+            </p>
+
+            <div className="grid grid-cols-2 gap-4 w-full">
+              {subGroup.options.map((option) => (
+                <button
+                  key={option.id}
+                  onClick={() => handleSubChoiceClick(option.id)}
+                  className={`glass-card group flex flex-col items-start gap-2 p-5 rounded-2xl text-left transition-all duration-300 bg-gradient-to-br ${option.color}`}
+                >
+                  <span className="text-3xl" style={{ filter: `drop-shadow(0 0 8px ${option.glow})` }}>
+                    {option.emoji}
+                  </span>
+                  <span className="text-base font-bold text-purple-100 group-hover:text-white transition-colors">
+                    {option.label}
+                  </span>
+                  <span className="text-xs text-purple-300/60 leading-relaxed group-hover:text-purple-300/80 transition-colors">
+                    {option.desc}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
         ) : (
           /* Card selection */
           <div className="flex flex-col items-center gap-6 w-full max-w-3xl fade-up">
@@ -107,9 +168,17 @@ export default function Home() {
                 style={{ animationDuration: '2s' }}
               >
                 {activeTopic?.emoji} {activeTopic?.label}
+                {activeSubTopic ? ` · ${activeSubTopic.label}` : ''}
               </span>
               <button
-                onClick={() => { setSelectedTopic(null); setSelectedCards([]); }}
+                onClick={() => {
+                  if (subGroup) {
+                    setSubChoice(null);
+                  } else {
+                    setSelectedTopic(null);
+                  }
+                  setSelectedCards([]);
+                }}
                 className="text-xs text-purple-500 hover:text-purple-300 border border-purple-800/60 hover:border-purple-600/60 px-3 py-1.5 rounded-full transition-colors"
               >
                 다시 선택
@@ -128,7 +197,6 @@ export default function Home() {
                   const isSelected = selectedCards.includes(i);
                   const isDisabled = !isSelected && allSelected;
                   const selOrder = selectedCards.indexOf(i) + 1;
-                  const symbol = CARD_SYMBOLS[i % CARD_SYMBOLS.length];
 
                   return (
                     <div
@@ -168,7 +236,7 @@ export default function Home() {
                               filter: isSelected ? 'drop-shadow(0 0 6px rgba(192,132,252,0.7))' : 'none',
                             }}
                           >
-                            {symbol}
+                            {CARD_BACK_SYMBOL}
                           </span>
                         </div>
                       </div>
@@ -222,6 +290,7 @@ export default function Home() {
       {showModal && selectedTopic && selectedCards.length === 3 && (
         <ResultModal
           topicId={selectedTopic}
+          subTopic={subChoice}
           cardIndices={selectedCards}
           onClose={handleCloseModal}
         />
