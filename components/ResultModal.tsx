@@ -21,6 +21,8 @@ interface AiResult {
 // 뽑은 3장에 고정된 역할을 부여해 AI가 카드별로 다른 관점에서 해석하도록 한다.
 // (이 역할도 프롬프트에 그대로 전달된다 — app/api/tarot/route.ts 와 의미가 일치해야 한다.)
 const CARD_ROLES = ['현재 상황과 핵심 흐름', '전개되는 변화와 그 방향', '조언과 앞으로의 흐름'];
+// 상단 미니 카드에서 자리를 짧게 가리키는 태그 — CARD_ROLES 와 순서가 일치한다.
+const CARD_ROLE_TAGS = ['현재', '변화', '조언'];
 
 const LOADING_MESSAGES = [
   '별자리가 배열되는 중...',
@@ -282,7 +284,17 @@ export default function ResultModal({ topicId, subTopic, cardIndices, onClose }:
                         <span className="text-purple-300/50 text-[9px] text-center leading-tight">{card.name}</span>
                       </div>
                       <p className="text-center text-purple-200 text-[11px] font-bold">{card.korean}</p>
-                      <p className="text-center text-purple-400/60 text-[10px] mt-0.5">
+                      <span
+                        className="mt-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full leading-none"
+                        style={{
+                          color: 'rgba(196,181,253,0.9)',
+                          background: 'rgba(76,29,149,0.4)',
+                          border: '1px solid rgba(167,139,250,0.25)',
+                        }}
+                      >
+                        {CARD_ROLE_TAGS[idx]}
+                      </span>
+                      <p className="text-center text-purple-400/60 text-[10px] mt-1">
                         {isRev ? card.reversedKeyword : card.keyword}
                       </p>
                     </div>
@@ -293,8 +305,11 @@ export default function ResultModal({ topicId, subTopic, cardIndices, onClose }:
               <div className="flex flex-col gap-2 mb-5" style={fadeSection(0)}>
                 {aiResult.cards.map((c, idx) => (
                   <div key={idx} className="rounded-xl px-4 py-3 text-sm text-purple-200/85 leading-relaxed" style={glassBox}>
+                    <span className="block text-[11px] font-bold tracking-wide text-purple-400/70 mb-0.5">
+                      [{idx + 1}번 카드 · {CARD_ROLES[idx]}]
+                    </span>
                     <span className="font-bold text-purple-300">
-                      {idx + 1}번 카드 · {c.name}
+                      {c.name}
                       <span className={reversed[idx] ? 'text-amber-400/80' : 'text-purple-400/70'}>
                         {' '}({reversed[idx] ? '역방향' : '정방향'})
                       </span>

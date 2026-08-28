@@ -16,6 +16,10 @@ export default function StarField() {
   const [stars, setStars] = useState<Star[]>([]);
 
   useEffect(() => {
+    // Stars are positioned with Math.random(), so they must be generated on
+    // the client only — doing it during render would cause a hydration
+    // mismatch. This one-shot setState in an effect is intentional.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setStars(
       Array.from({ length: 90 }, (_, i) => ({
         id: i,

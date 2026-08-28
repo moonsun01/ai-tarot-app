@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import StarField from '@/components/StarField';
 import TarotDeck from '@/components/TarotDeck';
 import ResultModal from '@/components/ResultModal';
@@ -11,6 +11,17 @@ import { ARCANA } from '@/data/arcana';
 // 카드 선택 화면에서는 모든 카드 뒷면을 동일하게 표시해
 // 심볼로 특정 카드를 유추할 수 없도록 한다.
 const CARD_BACK_SYMBOL = '✦';
+
+// 주제/세부 주제 카드에 쓰는 라인 아이콘 공통 스타일.
+// 기본은 연보라색 + 아주 약한 glow, hover 시 금색으로 은은하게 밝아진다.
+const CARD_ICON_CLASS =
+  'w-8 h-8 shrink-0 text-violet-300 transition-all duration-300 ' +
+  'drop-shadow-[0_0_6px_rgba(196,181,253,0.25)] ' +
+  'group-hover:text-amber-200 group-hover:drop-shadow-[0_0_10px_rgba(252,211,77,0.4)]';
+// 선택한 주제를 보여주는 상단 칩 안의 작은 아이콘.
+const CHIP_ICON_CLASS = 'w-5 h-5 shrink-0 text-violet-300';
+// 라인 두께는 전 아이콘 공통으로 살짝 얇게 맞춘다.
+const ICON_STROKE = 1.75;
 
 export default function Home() {
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
@@ -46,6 +57,7 @@ export default function Home() {
   };
 
   const activeTopic = TOPICS.find((t) => t.id === selectedTopic);
+  const ActiveTopicIcon = activeTopic?.icon;
   const subGroup = getSubTopicGroup(selectedTopic);
   const activeSubTopic = findSubTopic(selectedTopic, subChoice);
   // 세부 선택 그룹이 있는 주제는 카드를 뽑기 전에 세부 항목을 먼저 고르도록 한다.
@@ -93,15 +105,15 @@ export default function Home() {
                 운세 주제를 선택하세요
               </p>
               <div className="grid grid-cols-2 gap-4">
-                {TOPICS.map((topic) => (
+                {TOPICS.map((topic) => {
+                  const Icon = topic.icon;
+                  return (
                   <button
                     key={topic.id}
                     onClick={() => handleTopicClick(topic.id)}
                     className={`glass-card group flex flex-col items-start gap-2 p-5 rounded-2xl text-left transition-all duration-300 bg-gradient-to-br ${topic.color}`}
                   >
-                    <span className="text-3xl" style={{ filter: `drop-shadow(0 0 8px ${topic.glow})` }}>
-                      {topic.emoji}
-                    </span>
+                    <Icon className={CARD_ICON_CLASS} strokeWidth={ICON_STROKE} aria-hidden />
                     <span className="text-base font-bold text-purple-100 group-hover:text-white transition-colors">
                       {topic.label}
                     </span>
@@ -109,7 +121,8 @@ export default function Home() {
                       {topic.desc}
                     </span>
                   </button>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -120,10 +133,13 @@ export default function Home() {
 
             <div className="flex items-center gap-3">
               <span
-                className="px-5 py-2 rounded-full text-lg font-bold text-purple-100 glass-card"
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-lg font-bold text-purple-100 glass-card"
                 style={{ animationDuration: '2s' }}
               >
-                {activeTopic?.emoji} {activeTopic?.label}
+                {ActiveTopicIcon && (
+                  <ActiveTopicIcon className={CHIP_ICON_CLASS} strokeWidth={ICON_STROKE} aria-hidden />
+                )}
+                {activeTopic?.label}
               </span>
               <button
                 onClick={() => setSelectedTopic(null)}
@@ -138,15 +154,15 @@ export default function Home() {
             </p>
 
             <div className="grid grid-cols-2 gap-4 w-full">
-              {subGroup.options.map((option) => (
+              {subGroup.options.map((option) => {
+                const Icon = option.icon;
+                return (
                 <button
                   key={option.id}
                   onClick={() => handleSubChoiceClick(option.id)}
                   className={`glass-card group flex flex-col items-start gap-2 p-5 rounded-2xl text-left transition-all duration-300 bg-gradient-to-br ${option.color}`}
                 >
-                  <span className="text-3xl" style={{ filter: `drop-shadow(0 0 8px ${option.glow})` }}>
-                    {option.emoji}
-                  </span>
+                  <Icon className={CARD_ICON_CLASS} strokeWidth={ICON_STROKE} aria-hidden />
                   <span className="text-base font-bold text-purple-100 group-hover:text-white transition-colors">
                     {option.label}
                   </span>
@@ -154,7 +170,8 @@ export default function Home() {
                     {option.desc}
                   </span>
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -164,10 +181,13 @@ export default function Home() {
 
             <div className="flex items-center gap-3">
               <span
-                className="px-5 py-2 rounded-full text-lg font-bold text-purple-100 glass-card"
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-lg font-bold text-purple-100 glass-card"
                 style={{ animationDuration: '2s' }}
               >
-                {activeTopic?.emoji} {activeTopic?.label}
+                {ActiveTopicIcon && (
+                  <ActiveTopicIcon className={CHIP_ICON_CLASS} strokeWidth={ICON_STROKE} aria-hidden />
+                )}
+                {activeTopic?.label}
                 {activeSubTopic ? ` · ${activeSubTopic.label}` : ''}
               </span>
               <button
@@ -191,67 +211,88 @@ export default function Home() {
                 : `마음이 끌리는 카드를 ${3 - selectedCards.length}장 더 골라주세요`}
             </p>
 
-            <div className="glass-card w-full rounded-3xl p-5" style={{ animationDuration: '4s' }}>
-              <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-11 gap-2.5">
+            <div
+              className="glass-card w-full rounded-3xl deck-spread-panel"
+              style={{ animationDuration: '4s' }}
+            >
+              <div className="deck-spread-track">
                 {Array.from({ length: ARCANA.length }, (_, i) => {
                   const isSelected = selectedCards.includes(i);
                   const isDisabled = !isSelected && allSelected;
                   const selOrder = selectedCards.indexOf(i) + 1;
 
+                  // 실제 손으로 펼친 듯한 미세한 흐트러짐 — 전부 카드 인덱스만으로
+                  // 계산하므로 서버/클라이언트 첫 렌더가 항상 동일하다 (랜덤 없음).
+                  const d = i - (ARCANA.length - 1) / 2;
+                  const cardStyle = {
+                    '--i': String(i),
+                    '--card-rot': `${(d * 0.55 + ((i % 3) - 1) * 0.7).toFixed(2)}deg`,
+                    '--card-y': `${(Math.abs(d) * 0.6 + (i % 2) * 2).toFixed(1)}px`,
+                  } as CSSProperties;
+
                   return (
                     <div
                       key={i}
-                      onClick={() => !isDisabled && handleCardClick(i)}
-                      className="relative rounded-lg overflow-visible transition-all duration-300"
-                      style={{
-                        aspectRatio: '2 / 3',
-                        cursor: isDisabled ? 'not-allowed' : 'pointer',
-                        transform: isSelected ? 'translateY(-20px) scale(1.12)' : 'translateY(0) scale(1)',
-                        opacity: isDisabled ? 0.3 : 1,
-                        zIndex: isSelected ? 10 : 1,
-                        filter: isSelected
-                          ? 'drop-shadow(0 0 12px rgba(192,132,252,0.9))'
-                          : 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
-                      }}
+                      className="deck-card"
+                      style={cardStyle}
+                      data-selected={isSelected || undefined}
+                      data-disabled={isDisabled || undefined}
                     >
-                      <div
-                        className="absolute inset-0 rounded-lg"
-                        style={{
-                          background: isSelected
-                            ? 'linear-gradient(135deg, #3b0764, #4c1d95, #2e1065)'
-                            : 'linear-gradient(135deg, #1a0a2e, #2d1a5e, #120930)',
-                          border: isSelected
-                            ? '1px solid rgba(192,132,252,0.75)'
-                            : '1px solid rgba(109,40,217,0.35)',
-                        }}
-                      >
+                      <div className="deck-card-fan">
                         <div
-                          className="absolute inset-[3px] rounded flex items-center justify-center"
-                          style={{ border: '1px solid rgba(167,139,250,0.18)' }}
-                        >
-                          <span
-                            className="select-none text-base"
-                            style={{
-                              color: isSelected ? 'rgba(216,180,254,0.75)' : 'rgba(109,40,217,0.45)',
-                              filter: isSelected ? 'drop-shadow(0 0 6px rgba(192,132,252,0.7))' : 'none',
-                            }}
-                          >
-                            {CARD_BACK_SYMBOL}
-                          </span>
-                        </div>
-                      </div>
-
-                      {isSelected && (
-                        <div
-                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white z-20"
+                          onClick={() => !isDisabled && handleCardClick(i)}
+                          className={`deck-card-inner relative w-full rounded-lg overflow-visible transition-all duration-300${
+                            isSelected ? ' is-selected' : ''
+                          }`}
                           style={{
-                            background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
-                            boxShadow: '0 0 10px rgba(168,85,247,0.9)',
+                            aspectRatio: '2 / 3',
+                            cursor: isDisabled ? 'not-allowed' : 'pointer',
+                            opacity: isDisabled ? 0.3 : 1,
+                            filter: isSelected
+                              ? 'drop-shadow(0 0 12px rgba(192,132,252,0.9))'
+                              : 'drop-shadow(0 2px 4px rgba(0,0,0,0.5))',
                           }}
                         >
-                          {selOrder}
+                          <div
+                            className="absolute inset-0 rounded-lg"
+                            style={{
+                              background: isSelected
+                                ? 'linear-gradient(135deg, #3b0764, #4c1d95, #2e1065)'
+                                : 'linear-gradient(135deg, #1a0a2e, #2d1a5e, #120930)',
+                              border: isSelected
+                                ? '1px solid rgba(192,132,252,0.75)'
+                                : '1px solid rgba(109,40,217,0.35)',
+                            }}
+                          >
+                            <div
+                              className="absolute inset-[3px] rounded flex items-center justify-center"
+                              style={{ border: '1px solid rgba(167,139,250,0.18)' }}
+                            >
+                              <span
+                                className="select-none text-base"
+                                style={{
+                                  color: isSelected ? 'rgba(216,180,254,0.75)' : 'rgba(109,40,217,0.45)',
+                                  filter: isSelected ? 'drop-shadow(0 0 6px rgba(192,132,252,0.7))' : 'none',
+                                }}
+                              >
+                                {CARD_BACK_SYMBOL}
+                              </span>
+                            </div>
+                          </div>
+
+                          {isSelected && (
+                            <div
+                              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white z-20"
+                              style={{
+                                background: 'linear-gradient(135deg, #7c3aed, #a855f7)',
+                                boxShadow: '0 0 10px rgba(168,85,247,0.9)',
+                              }}
+                            >
+                              {selOrder}
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
                   );
                 })}

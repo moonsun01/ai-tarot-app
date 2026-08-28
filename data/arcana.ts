@@ -1,4 +1,6 @@
 export interface ArcanaCard {
+  /** 카드 번호 (0번 The Fool ~ 21번 The World) */
+  id: number;
   name: string;
   korean: string;
   /** 정방향 키워드 */
@@ -15,6 +17,7 @@ export const CARD_SYMBOLS = ['✦', '☽', '★', '◈', '⬡', '✧', '⊕', '�
 
 export const ARCANA: ArcanaCard[] = [
   {
+    id: 0,
     name: 'The Fool',
     korean: '바보',
     keyword: '새로운 시작',
@@ -23,6 +26,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '준비 없이 뛰어들거나 방향을 정하지 못한 상태입니다. 한 걸음 물러나 계획을 점검할 필요가 있습니다.',
   },
   {
+    id: 1,
     name: 'The Magician',
     korean: '마법사',
     keyword: '의지와 창조',
@@ -31,14 +35,16 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '가진 능력을 제대로 쓰지 못하거나 의도가 여러 곳으로 흩어져 있습니다. 초점을 다시 맞출 때입니다.',
   },
   {
+    id: 2,
     name: 'The High Priestess',
     korean: '여사제',
-    keyword: '직관과 신비',
-    meaning: '겉으로 드러나지 않은 진실이 있습니다. 내면의 목소리에 귀 기울이세요.',
+    keyword: '직관과 통찰, 신비',
+    meaning: '겉으로 드러나지 않은 진실이 있습니다. 논리로 다 설명되지 않는 직관과 내면의 통찰에 귀 기울이세요.',
     reversedKeyword: '직관 외면, 혼란',
     reversedMeaning: '내면의 신호를 무시하고 있거나 정보가 감춰져 판단이 흐려진 상태입니다.',
   },
   {
+    id: 3,
     name: 'The Empress',
     korean: '여황제',
     keyword: '풍요와 창조',
@@ -47,6 +53,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '에너지가 메마르거나 스스로를 충분히 돌보지 못하고 있습니다. 여유를 회복하는 것이 먼저입니다.',
   },
   {
+    id: 4,
     name: 'The Emperor',
     korean: '황제',
     keyword: '권위와 안정',
@@ -55,6 +62,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '지나친 고집이나 경직된 태도가 흐름을 막고 있습니다. 유연함을 되찾을 필요가 있습니다.',
   },
   {
+    id: 5,
     name: 'The Hierophant',
     korean: '교황',
     keyword: '전통과 가르침',
@@ -63,6 +71,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '기존의 틀이 잘 맞지 않아 자신만의 방식을 찾아가려는 흐름입니다.',
   },
   {
+    id: 6,
     name: 'The Lovers',
     korean: '연인',
     keyword: '사랑과 선택',
@@ -71,6 +80,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '관계나 선택에서 엇갈림이나 확신 부족이 드러납니다. 내가 진짜 원하는 것을 정리할 필요가 있습니다.',
   },
   {
+    id: 7,
     name: 'The Chariot',
     korean: '전차',
     keyword: '승리와 추진력',
@@ -79,6 +89,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '의욕은 있지만 방향이 흔들리거나 통제력을 잃기 쉬운 흐름입니다. 속도보다 방향이 중요합니다.',
   },
   {
+    id: 8,
     name: 'Strength',
     korean: '힘',
     keyword: '용기와 인내',
@@ -87,6 +98,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '인내심이 흔들리고 스스로를 믿기 어려운 상태입니다. 서두르지 않고 힘을 회복하는 것이 중요합니다.',
   },
   {
+    id: 9,
     name: 'The Hermit',
     korean: '은둔자',
     keyword: '내면 탐구',
@@ -95,6 +107,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '지나친 단절이나 혼자만의 생각에 갇혀 있을 수 있습니다. 조심스럽게 문을 열어볼 시점입니다.',
   },
   {
+    id: 10,
     name: 'Wheel of Fortune',
     korean: '운명의 수레바퀴',
     keyword: '운명과 전환',
@@ -103,6 +116,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '변화가 더디거나 흐름을 거스르고 있어 답답함이 느껴지는 시기입니다.',
   },
   {
+    id: 11,
     name: 'Justice',
     korean: '정의',
     keyword: '공정과 균형',
@@ -111,6 +125,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '책임을 미루거나 균형이 무너져 공정하지 못한 상황일 수 있습니다. 솔직하게 마주할 필요가 있습니다.',
   },
   {
+    id: 12,
     name: 'The Hanged Man',
     korean: '매달린 사람',
     keyword: '관점의 전환',
@@ -119,6 +134,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '필요 없는 기다림이나 소모적인 희생에 머물러 있습니다. 놓아줄 것을 정리할 때입니다.',
   },
   {
+    id: 13,
     name: 'Death',
     korean: '죽음',
     keyword: '변화와 재생',
@@ -127,6 +143,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '끝내야 할 것을 붙잡고 있어 새로운 시작이 늦어지고 있습니다.',
   },
   {
+    id: 14,
     name: 'Temperance',
     korean: '절제',
     keyword: '조화와 균형',
@@ -135,14 +152,16 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '극단으로 치우치거나 조율이 되지 않아 에너지가 새어 나가고 있습니다.',
   },
   {
+    id: 15,
     name: 'The Devil',
     korean: '악마',
     keyword: '속박과 유혹',
     meaning: '스스로를 가두는 생각이나 습관을 경계하세요. 자유는 당신 손에 달려 있습니다.',
     reversedKeyword: '속박에서 벗어남, 자각',
-    reversedMeaning: '얽매였던 것에서 풀려나거나 그 사슬을 자각하기 시작하는 흐름입니다.',
+    reversedMeaning: '오랫동안 나를 옭아매던 집착·관계·습관의 사슬을 자각하고, 그 속박에서 스스로 벗어나기 시작하는 흐름입니다. 무엇이 나를 붙잡고 있었는지 분명히 보이기 시작합니다.',
   },
   {
+    id: 16,
     name: 'The Tower',
     korean: '탑',
     keyword: '급변과 해방',
@@ -151,6 +170,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '예고된 변화를 미루고 있거나 충격이 서서히 지나가는 중입니다.',
   },
   {
+    id: 17,
     name: 'The Star',
     korean: '별',
     keyword: '희망과 치유',
@@ -159,14 +179,16 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '희망이 약해지고 회복이 더디게 느껴질 수 있습니다. 기대를 잠시 내려놓는 여유가 필요합니다.',
   },
   {
+    id: 18,
     name: 'The Moon',
     korean: '달',
-    keyword: '환상과 직관',
-    meaning: '불확실함이 있을 수 있습니다. 직관을 믿고 감정의 흐름을 따라가세요.',
+    keyword: '불안과 불확실성, 무의식',
+    meaning: '상황이 명확하지 않고 안갯속을 걷는 듯한 불안감이 있을 수 있습니다. 보이지 않는 감정에 흔들리지 말고 차분히 내면의 안정을 찾아야 합니다.',
     reversedKeyword: '혼란 해소, 진실이 드러남',
     reversedMeaning: '안개가 걷히며 불안이나 오해가 서서히 풀리는 흐름입니다.',
   },
   {
+    id: 19,
     name: 'The Sun',
     korean: '태양',
     keyword: '기쁨과 성공',
@@ -175,6 +197,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '긍정적인 기운이 잠시 가려져 있지만 완전히 사라진 것은 아닙니다.',
   },
   {
+    id: 20,
     name: 'Judgement',
     korean: '심판',
     keyword: '각성과 부름',
@@ -183,6 +206,7 @@ export const ARCANA: ArcanaCard[] = [
     reversedMeaning: '결단을 미루거나 과거에 대한 후회에 머물러 있는 상태입니다.',
   },
   {
+    id: 21,
     name: 'The World',
     korean: '세계',
     keyword: '완성과 통합',

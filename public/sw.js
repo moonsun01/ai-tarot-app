@@ -1,15 +1,23 @@
-// Offline cache for DC&M AI 타로점.
+// ============================================================================
+// KILL SWITCH — this service worker only exists to REMOVE itself.
+// ============================================================================
 //
-// Caches the static app shell (HTML, JS/CSS bundles — which is where the
-// bundled tarot card data and inline SVG card art live, plus the
-// self-hosted font files) so the app keeps working with no network after
-// it has been loaded once.
+// An earlier version of this file was a real offline cache. On localhost it
+// kept serving stale `/_next/static/*` chunks from Cache Storage under
+// `npm run dev`: the browser booted an outdated client bundle (old emoji
+// `<span class="text-3xl">`) against freshly server-rendered HTML (new
+// lucide `<svg>`) → "Hydration failed", and the UI showed the old icons.
 //
-// IMPORTANT: /api/* (the AI interpretation endpoint) is never intercepted
-// here, so AI responses are always fetched live and never served from
-// this cache.
-
-const CACHE_NAME = 'tarot-app-cache-v1';
+// The browser always revalidates the service-worker script itself over the
+// network (bypassing any SW fetch handler, and `updateViaCache: 'none'` is
+// set at registration), so shipping this file is enough to reach every
+// browser that still has the old worker. On activation it deletes every
+// cache, unregisters itself, and reloads all open tabs — leaving a clean,
+// service-worker-free origin.
+//
+// Do NOT reintroduce offline caching here without a hard-versioned cache
+// name AND a dev guard in the registration code. See
+// components/ServiceWorkerRegister.tsx.
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -17,76 +25,23 @@ self.addEventListener('install', () => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(
-          keys
-            .filter((key) => key.startsWith('tarot-app-cache-') && key !== CACHE_NAME)
-            .map((key) => caches.delete(key)),
-        ),
-      )
-      .then(() => self.clients.claim()),
+    (async () => {
+      // 1. Drop every Cache Storage entry (old app-shell + chunk caches).
+      const keys = await caches.keys();
+      await Promise.all(keys.map((key) => caches.delete(key)));
+
+      // 2. Remove this registration.
+      await self.registration.unregister();
+
+      // 3. Force every controlled tab to reload from the network so it
+      //    picks up the real, uncached app.
+      const clients = await self.clients.matchAll({ type: 'window' });
+      for (const client of clients) {
+        client.navigate(client.url);
+      }
+    })(),
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
-
-  // Only ever cache safe, same-origin GET requests. This also naturally
-  // excludes the AI endpoint, which is called with POST.
-  if (request.method !== 'GET') return;
-
-  const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith('/api/')) return;
-
-  if (request.mode === 'navigate') {
-    event.respondWith(networkFirst(request));
-    return;
-  }
-
-  if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/_next/image')) {
-    // Hashed, immutable build assets (JS/CSS bundles, self-hosted fonts) —
-    // this is also where the tarot card data/art lives once bundled.
-    event.respondWith(cacheFirst(request));
-    return;
-  }
-
-  // Everything else same-origin: manifest.json, favicon.ico, etc.
-  event.respondWith(staleWhileRevalidate(request));
-});
-
-async function networkFirst(request) {
-  const cache = await caches.open(CACHE_NAME);
-  try {
-    const response = await fetch(request);
-    if (response && response.ok) cache.put(request, response.clone());
-    return response;
-  } catch (err) {
-    const cached = (await cache.match(request)) || (await cache.match('/'));
-    if (cached) return cached;
-    throw err;
-  }
-}
-
-async function cacheFirst(request) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request);
-  if (cached) return cached;
-  const response = await fetch(request);
-  if (response && response.ok) cache.put(request, response.clone());
-  return response;
-}
-
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match(request);
-  const network = fetch(request)
-    .then((response) => {
-      if (response && response.ok) cache.put(request, response.clone());
-      return response;
-    })
-    .catch(() => undefined);
-  return cached || (await network) || Response.error();
-}
+// No fetch handler: while this worker is briefly active it stays completely
+// transparent and every request goes straight to the network.

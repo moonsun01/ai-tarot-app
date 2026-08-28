@@ -90,3 +90,111 @@ body {
 .fade-up {
   animation: fade-up 0.5s ease both;
 }
+
+/* ── Card-selection: a real tarot "spread" ─────────────────────────────────
+   The 22 card backs start as one overlapped deck and sweep open left→right,
+   the way a reader pushes a deck across the table, then stay fanned as a
+   continuous overlapping ribbon you pick from. Pure CSS, and every per-card
+   value is derived from the card index (no random) so it is hydration-safe
+   and replays each time the card step mounts.
+
+   Three nested layers keep transforms from fighting each other:
+     .deck-card        entrance sweep (translateX only) + card-vs-card z-index
+     .deck-card-fan    static fanned rest pose — tiny per-index rotate + y drift
+     .deck-card-inner  hover lift / selected "drawn from the deck" pose
+                       (animated by its existing `transition-all duration-300`)
+
+   Per-card CSS vars set inline from the index:
+     --i         card index, drives the sweep distance + stagger
+     --card-rot  fanned tilt at rest (deg)
+     --card-y    vertical hand-dealt drift at rest (px) */
+
+.deck-spread-panel {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 85, 247, 0.5) transparent;
+}
+.deck-spread-panel::-webkit-scrollbar { height: 8px; }
+.deck-spread-panel::-webkit-scrollbar-track { background: transparent; }
+.deck-spread-panel::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, rgba(124, 58, 237, 0.55), rgba(168, 85, 247, 0.55));
+  border-radius: 999px;
+}
+
+.deck-spread-track {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: max-content;
+  min-width: 100%;
+  box-sizing: border-box;
+  padding: 54px 30px 28px;
+}
+
+.deck-card {
+  --card-w: 92px;
+  --step: 26px;        /* visible strip of each overlapped card (~28%) */
+  --motion-scale: 1;   /* dampens rotate + y drift on small screens */
+  position: relative;
+  isolation: isolate;
+  flex: 0 0 var(--card-w);
+  width: var(--card-w);
+  margin-left: calc((var(--card-w) - var(--step)) * -1);
+  animation: deck-sweep 0.72s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 0.02s);
+}
+.deck-card:first-child { margin-left: 0; }
+.deck-card:not([data-disabled]):hover { z-index: 30; }
+.deck-card[data-selected] { z-index: 20; }
+
+/* Whole deck slides from stacked (all at card 0's spot) to its fanned spot.
+   Heavy overlap between neighbours' timing makes it read as one sweep, not
+   22 cards appearing one by one. */
+@keyframes deck-sweep {
+  from { transform: translateX(calc(var(--i, 0) * var(--step) * -1)); }
+  to   { transform: translateX(0); }
+}
+
+.deck-card-fan {
+  width: 100%;
+  transform:
+    translateY(calc(var(--card-y, 0px) * var(--motion-scale)))
+    rotate(calc(var(--card-rot, 0deg) * var(--motion-scale)));
+}
+
+.deck-card:not([data-disabled]):hover .deck-card-inner {
+  transform: translateY(-16px);
+}
+.deck-card-inner.is-selected {
+  transform: translateY(-30px) scale(1.12);
+}
+.deck-card:not([data-disabled]):hover .deck-card-inner.is-selected {
+  transform: translateY(-34px) scale(1.12);
+}
+
+/* Mobile: same idea, less overlap + gentler angles, swipe to browse. */
+@media (max-width: 640px) {
+  .deck-card {
+    --card-w: 66px;
+    --step: 30px;      /* ~45% visible — easier to thumb through */
+    --motion-scale: 0.5;
+    animation-duration: 0.6s;
+    animation-delay: calc(var(--i, 0) * 0.015s);
+  }
+  .deck-spread-track {
+    padding: 44px 22px 24px;
+    scroll-snap-type: x proximity;
+  }
+  .deck-card { scroll-snap-align: center; }
+  .deck-card:not([data-disabled]):hover .deck-card-inner { transform: translateY(-12px); }
+  .deck-card-inner.is-selected { transform: translateY(-22px) scale(1.1); }
+  .deck-card:not([data-disabled]):hover .deck-card-inner.is-selected {
+    transform: translateY(-26px) scale(1.1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-card { animation-duration: 1ms; animation-delay: 0ms; }
+}

@@ -2,13 +2,26 @@
 // 여기서 고른 세부 항목은 API(app/api/tarot/route.ts)의 해석 프롬프트까지 전달되어
 // 실제 결과 해석이 달라진다. 세부 선택이 없는 주제(오늘의 총운)는 여기에 넣지 않는다.
 
+import type { LucideIcon } from 'lucide-react';
+import {
+  BookOpen,
+  ClipboardCheck,
+  Compass,
+  Handshake,
+  HeartHandshake,
+  MessageCircleHeart,
+  Sparkles,
+  Sprout,
+  Users,
+} from 'lucide-react';
+
 export interface SubTopic {
   id: string;
-  emoji: string;
+  /** 통일된 라인 아이콘(lucide-react). 화면에서 연보라색으로 렌더링된다. */
+  icon: LucideIcon;
   label: string;
   desc: string;
   color: string;
-  glow: string;
 }
 
 export interface SubTopicGroup {
@@ -26,35 +39,31 @@ export const SUBTOPIC_GROUPS: SubTopicGroup[] = [
     options: [
       {
         id: 'single',
-        emoji: '🌱',
+        icon: Sprout,
         label: '솔로',
         desc: '새로운 인연을 기다리는 중',
         color: 'from-rose-900/30 to-fuchsia-900/20',
-        glow: 'rgba(244,63,94,0.3)',
       },
       {
         id: 'crush',
-        emoji: '💭',
+        icon: MessageCircleHeart,
         label: '짝사랑',
         desc: '혼자 마음을 키우는 중',
         color: 'from-pink-900/40 to-rose-900/30',
-        glow: 'rgba(236,72,153,0.35)',
       },
       {
         id: 'some',
-        emoji: '✨',
+        icon: Sparkles,
         label: '썸',
         desc: '설렘과 확신 사이',
         color: 'from-fuchsia-900/40 to-pink-900/30',
-        glow: 'rgba(217,70,239,0.35)',
       },
       {
         id: 'couple',
-        emoji: '💑',
+        icon: HeartHandshake,
         label: '커플',
         desc: '함께 만들어가는 우리의 이야기',
         color: 'from-rose-900/40 to-pink-900/30',
-        glow: 'rgba(244,63,94,0.35)',
       },
     ],
   },
@@ -64,27 +73,24 @@ export const SUBTOPIC_GROUPS: SubTopicGroup[] = [
     options: [
       {
         id: 'study',
-        emoji: '📚',
+        icon: BookOpen,
         label: '학업',
         desc: '공부 흐름과 방향',
         color: 'from-indigo-900/40 to-blue-900/30',
-        glow: 'rgba(99,102,241,0.35)',
       },
       {
         id: 'exam',
-        emoji: '📝',
+        icon: ClipboardCheck,
         label: '시험',
         desc: '준비 상태와 결과의 흐름',
         color: 'from-blue-900/40 to-sky-900/30',
-        glow: 'rgba(56,189,248,0.35)',
       },
       {
         id: 'job',
-        emoji: '🧭',
+        icon: Compass,
         label: '진로/취업',
         desc: '방향과 다가오는 기회',
         color: 'from-violet-900/40 to-indigo-900/30',
-        glow: 'rgba(139,92,246,0.35)',
       },
     ],
   },
@@ -94,19 +100,17 @@ export const SUBTOPIC_GROUPS: SubTopicGroup[] = [
     options: [
       {
         id: 'friend',
-        emoji: '🫂',
+        icon: Users,
         label: '대인관계',
         desc: '친구·주변 사람들과의 흐름',
         color: 'from-emerald-900/40 to-teal-900/30',
-        glow: 'rgba(52,211,153,0.3)',
       },
       {
         id: 'teamwork',
-        emoji: '🤝',
+        icon: Handshake,
         label: '팀플/협업',
         desc: '함께 일할 때의 분위기',
         color: 'from-teal-900/40 to-cyan-900/30',
-        glow: 'rgba(45,212,191,0.3)',
       },
     ],
   },
